@@ -2,19 +2,17 @@ import { ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/fir
 
 const DATA_PATH = 'apartment/data'; 
 let appData = {};
-let isAdmin = false; // به صورت پیش‌فرض هیچ‌کس مدیر نیست (همسایه‌ها)
+let isAdmin = false;
 
-// آیکون‌ها
 const TRASH_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="15" width="80" height="15" rx="5" fill="#ef4444"/><rect x="35" y="5" width="30" height="10" rx="4" fill="#ef4444"/><path d="M 15 32 L 85 32 L 75 92 A 10 10 0 0 1 65 100 L 35 100 A 10 10 0 0 1 25 92 Z" fill="#ef4444"/><rect x="32" y="45" width="8" height="35" rx="4" fill="white"/><rect x="46" y="45" width="8" height="35" rx="4" fill="white"/><rect x="60" y="45" width="8" height="35" rx="4" fill="white"/></svg>`;
 const CHECK_SVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 function fmt(n) { return n === 0 ? '۰' : n.toLocaleString('fa-IR'); }
 
-// ─── ورود به حالت مدیر ───
 window.toggleAdminMode = function() {
   if (!isAdmin) {
     const pass = prompt("لطفاً رمز عبور مدیر را وارد کنید (پیش‌فرض: 1234):");
-    if (pass === "1234") { // ⬅️ رمز عبور دلخواه خود را اینجا تغییر دهید
+    if (pass === "1234") {
       isAdmin = true;
       document.getElementById('adminToolbar').style.display = 'flex';
       document.getElementById('modeBadge').innerText = "حالت: مدیر ساختمان 👑";
@@ -38,8 +36,12 @@ window.toggleAdminMode = function() {
   }
 };
 
-// ─── اتصال به دیتابیس ───
-window.addEventListener('firebaseReady', () => {
+// ─── تابع راه‌اندازی فایربیس ───
+function initApp() {
+  if (!window.db) {
+    console.error("Firebase DB is not initialized.");
+    return;
+  }
   const dataRef = ref(window.db, DATA_PATH);
   onValue(dataRef, (snapshot) => {
     const data = snapshot.val();
@@ -47,29 +49,36 @@ window.addEventListener('firebaseReady', () => {
       appData = data;
       if (!appData.paid) appData.paid = {};
       if (!appData.details) appData.details = {};
-      render();
     } else {
-      // اگر دیتابیس خالی بود، دیتای پایه را آپلود کن
-      appData = JSON.parse(JSON.stringify(initialData));
+      // استفاده از window.initialData
+      appData = JSON.parse(JSON.stringify(window.initialData)); 
       appData.paid = appData.paid || {};
       saveData();
-      render();
     }
+    render();
   });
-});
+}
+
+// بررسی اینکه آیا فایربیس آماده است یا خیر
+if (window.db) {
+  initApp();
+} else {
+  window.addEventListener('firebaseReady', initApp);
+}
 
 function saveData() {
-  if (!window.db) return; // اگر فایربیس آماده نبود، کاری نکن
+  if (!window.db) return;
   const dataRef = ref(window.db, DATA_PATH);
   set(dataRef, appData);
 }
 
-// ─── رندر جدول ───
 function render() {
   const thead = document.getElementById('tableHead');
   const tbody = document.getElementById('tbody');
   const tfoot = document.getElementById('tableFoot');
   
+  if (!appData || !appData.columns) return; // جلوگیری از خطا در صورت خالی بودن
+
   let thHtml = '<tr><th style="width:3%">#</th>';
   thHtml += `<th style="width:12%">نام واحد ${isAdmin ? `<button class="th-btn add" onclick="openAddPersonModal()">+</button>` : ''}</th>`;
   
@@ -116,7 +125,6 @@ function render() {
       } else if (isPaid) {
         rowHtml += `<td><div class="paid-anim">${CHECK_SVG} تسویه</div>${isAdmin ? `<button class="tog-btn undo" onclick="togglePaid('${person.id}','${col.id}')">↺</button>` : ''}</td>`;
       } else {
-        // دکمه سطل زباله (تسویه) فقط برای مدیر نمایش داده می‌شود
         rowHtml += `<td><span class="amt">${fmt(amount)}</span>${detailText}${isAdmin ? `<button class="tog-btn" onclick="togglePaid('${person.id}','${col.id}')">${TRASH_SVG}</button>` : ''}</td>`;
       }
     });
@@ -143,13 +151,14 @@ function render() {
   document.getElementById('sumPaidTotal').textContent = fmt(displayTotal);
 }
 
-// ─── توابع تسویه و ویرایش (فقط مدیر) ───
+// (بقیه توابع مثل togglePaid, openAddPersonModal, ... بدون تغییر از کد قبلی کپی شوند)
+// این بخش‌ها رو از کد قبلی که براتون فرستادم کپی کنید (از خط window.togglePaid به بعد تا آخر).
 window.togglePaid = function(id, colId) {
-  if (!isAdmin) return; // فقط مدیر می‌تواند تغییر دهد
+  if (!isAdmin) return;
   const key = `${id}:${colId}`;
   if (appData.paid[key]) delete appData.paid[key];
   else appData.paid[key] = true;
-  saveData(); // آپلود در فایربیس
+  saveData();
 }
 
 window.openResetPaidTotalModal = function() {
@@ -171,7 +180,6 @@ window.confirmResetPaidTotal = function() {
   saveData(); render(); closeResetPaidTotalModal();
 }
 
-// ─── افزودن و حذف (فقط مدیر) ───
 window.openAddPersonModal = function() {
   if (!isAdmin) return;
   document.getElementById('newPersonName').value = '';
@@ -255,7 +263,6 @@ window.confirmDeleteColumn = function() {
   saveData(); closeDeleteColumnModal();
 }
 
-// ─── بکاپ‌گیری و بازیابی ───
 window.backupData = function() {
   if (!isAdmin) return;
   const dataStr = JSON.stringify(appData, null, 2);
@@ -287,7 +294,6 @@ window.restoreData = function(event) {
   event.target.value = '';
 }
 
-// بستن مودال‌ها با کلیک روی پس‌زمینه
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
 });

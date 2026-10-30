@@ -1,4 +1,4 @@
-const initialData = {
+window.initialData = {
   columns: [
     { id: 'col_old', label: 'بدهی قبلی', type: 'fixed' },
     { id: 'col_def', label: 'شارژ معوق', type: 'fixed' },
@@ -7,9 +7,9 @@ const initialData = {
     { id: 'col_aban', label: 'آبان ۱۴۰۵', type: 'month' }
   ],
   people: [
-    { id: 'p_bayan', name: 'بیان محمودپور' },
-    { id: 'p_amir', name: 'امیرارژنگی' },
-    { id: 'p_bigdeli', name: 'مهدی بیگدلی' },
+    { id: 'p_bayan', name: 'بیان' },
+    { id: 'p_amir', name: 'امیر' },
+    { id: 'p_bigdeli', name: 'بیگدلی' },
     { id: 'p_akam', name: 'آکام' },
     { id: 'p_moradi', name: 'خانم مرادی' },
     { id: 'p_armand', name: 'علیرضا آرمند' },
@@ -21,7 +21,7 @@ const initialData = {
     { id: 'p_bektash', name: 'سعید بکتاش' },
     { id: 'p_abubakr', name: 'ابوبکر رسولی' },
     { id: 'p_omid', name: 'امید سوزه' },
-    { id: 'p_zeynab', name: 'زینب رسولی' },
+    { id: 'p_zeynab', name: 'زینب رسول‌پور' },
     { id: 'p_jafar', name: 'جعفر رسولی' }
   ],
   amounts: {
@@ -32,7 +32,7 @@ const initialData = {
     'p_masoudi:col_old': 500000, 'p_masoudi:col_sewage': 630000, 'p_masoudi:col_aban': 500000,
     'p_abubakr:col_def': 700000, 'p_abubakr:col_cost': 950000, 'p_abubakr:col_sewage': 630000, 'p_abubakr:col_aban': 500000,
     'p_jafar:col_def': 350000, 'p_jafar:col_cost': 100000, 'p_jafar:col_sewage': 630000, 'p_jafar:col_aban': 500000,
-   'p_zeynab:col_sewage': 630000, 'p_zeynab:col_aban': 500000
+    'p_zeynab:col_old': 3750000, 'p_zeynab:col_sewage': 630000, 'p_zeynab:col_aban': 500000
   },
   details: {
     'p_akam:col_def': 'شهریور + مهر (۲×۳۵۰)',
@@ -49,6 +49,6 @@ const initialData = {
     'p_zeynab:col_old': 'فروردین تا مهر (پرداخت شد)'
   },
   paid: {
-      paid: {} 
+    'p_zeynab:col_old': true
   }
 };
