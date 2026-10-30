@@ -6,7 +6,6 @@
   <title>مدیریت هزینه‌ها</title>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="style.css">
-  <!-- اسکریپت رسمی تلگرام -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -61,14 +60,16 @@
 
   </div>
 
-  <!-- ۱. پاپ‌آپ ورود مدیر (با دکمه نمایش/مخفی کردن رمز) -->
+  <!-- ═══════════ پاپ‌آپ‌ها ═══════════ -->
+
+  <!-- ۱. پاپ‌آپ ورود مدیر (با دکمه چشم) -->
   <div id="loginModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header"><h3>🔐 ورود مدیر</h3><button class="close-btn" onclick="closeLoginModal()">&times;</button></div>
       <div class="modal-body">
         <p class="modal-desc" style="text-align: center; font-size: 10pt; margin-bottom: 15px;">لطفاً رمز عبور مدیر را وارد کنید:</p>
-        <div class="form-group" style="position: relative;">
-          <input type="password" id="adminPasswordInput" class="form-control" style="text-align: center; font-size: 14pt; letter-spacing: 3px; padding-left: 45px;" placeholder="****" onkeypress="if(event.key === 'Enter') confirmAdminLogin()">
+        <div class="form-group" style="position: relative; margin-bottom: 0;">
+          <input type="password" id="adminPasswordInput" class="form-control" style="text-align: center; font-size: 14pt; letter-spacing: 3px; padding-left: 40px;" placeholder="****" onkeypress="if(event.key === 'Enter') confirmAdminLogin()">
           
           <!-- دکمه چشم -->
           <button type="button" onclick="event.preventDefault(); togglePasswordVisibility();" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; z-index: 10;">
