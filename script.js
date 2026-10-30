@@ -1,6 +1,5 @@
 import { ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// ⬇️ کدهای مخفی کردن آدرس در تلگرام ⬇️
 if (window.Telegram && window.Telegram.WebApp) {
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
@@ -19,6 +18,8 @@ function fmt(n) { return n === 0 ? '۰' : n.toLocaleString('fa-IR'); }
 window.toggleAdminMode = function() {
   if (!isAdmin) {
     document.getElementById('adminPasswordInput').value = '';
+    document.getElementById('adminPasswordInput').type = 'password'; // برگرداندن به حالت مخفی
+    document.getElementById('eyeIcon').innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`; // آیکون باز
     document.getElementById('loginModal').classList.add('active');
     setTimeout(() => document.getElementById('adminPasswordInput').focus(), 300);
   } else {
@@ -50,9 +51,9 @@ window.confirmAdminLogin = function() {
     closeLoginModal();
     render();
   } else {
-    const input = document.getElementById('adminPasswordInput');
-    input.classList.add('invalid');
-    setTimeout(() => input.classList.remove('invalid'), 500);
+    const wrapper = document.querySelector('.password-wrapper');
+    wrapper.classList.add('invalid');
+    setTimeout(() => wrapper.classList.remove('invalid'), 500);
   }
 }
 
