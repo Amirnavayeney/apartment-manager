@@ -38,10 +38,6 @@ window.toggleAdminMode = function() {
 
 // ─── تابع راه‌اندازی فایربیس ───
 function initApp() {
-  if (!window.db) {
-    console.error("Firebase DB is not initialized.");
-    return;
-  }
   const dataRef = ref(window.db, DATA_PATH);
   onValue(dataRef, (snapshot) => {
     const data = snapshot.val();
@@ -59,12 +55,13 @@ function initApp() {
   });
 }
 
-// بررسی اینکه آیا فایربیس آماده است یا خیر
-if (window.db) {
-  initApp();
-} else {
-  window.addEventListener('firebaseReady', initApp);
-}
+// 🔥 راه‌حل مشکل: چک کردن مداوم تا فایربیس لود شود
+const checkFirebase = setInterval(() => {
+  if (window.db) {
+    clearInterval(checkFirebase);
+    initApp();
+  }
+}, 100);
 
 function saveData() {
   if (!window.db) return;
@@ -73,12 +70,16 @@ function saveData() {
 }
 
 function render() {
+  // 🛡️ خط محافظ: اگر اطلاعات هنوز لود نشده، کاری نکن (جلوگیری از کرش)
+  if (!appData || !appData.columns) {
+    console.log("منتظر دریافت اطلاعات از دیتابیس...");
+    return; 
+  }
+
   const thead = document.getElementById('tableHead');
   const tbody = document.getElementById('tbody');
   const tfoot = document.getElementById('tableFoot');
   
-  if (!appData || !appData.columns) return; // جلوگیری از خطا در صورت خالی بودن
-
   let thHtml = '<tr><th style="width:3%">#</th>';
   thHtml += `<th style="width:12%">نام واحد ${isAdmin ? `<button class="th-btn add" onclick="openAddPersonModal()">+</button>` : ''}</th>`;
   
@@ -151,8 +152,7 @@ function render() {
   document.getElementById('sumPaidTotal').textContent = fmt(displayTotal);
 }
 
-// (بقیه توابع مثل togglePaid, openAddPersonModal, ... بدون تغییر از کد قبلی کپی شوند)
-// این بخش‌ها رو از کد قبلی که براتون فرستادم کپی کنید (از خط window.togglePaid به بعد تا آخر).
+// توابع ویرایش (فقط مدیر)
 window.togglePaid = function(id, colId) {
   if (!isAdmin) return;
   const key = `${id}:${colId}`;
