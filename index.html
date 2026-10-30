@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>مدیریت هزینه‌های آپارتمان</title>
+  <title>مدیریت هزینه‌ها</title>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="style.css">
+  <!-- اسکریپت رسمی تلگرام -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -29,7 +30,7 @@
 
     <div class="scroll-hint">
       <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8l4 4-4 4M7 16l-4-4 4-4"/></svg>
-      برای دیدن بقیه ستون‌ها، جدول را به چپ و راست بکشید
+      برای دیدن بقیه ستون‌ها، جدول را بکشید
       <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8l-4 4 4 4M17 16l4-4-4-4"/></svg>
     </div>
 
@@ -60,7 +61,25 @@
 
   </div>
 
-  <!-- پاپ‌آپ‌ها -->
+  <!-- ═══════════ پاپ‌آپ‌ها ═══════════ -->
+
+  <!-- ۱. پاپ‌آپ ورود مدیر (جدید) -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header"><h3>🔐 ورود مدیر</h3><button class="close-btn" onclick="closeLoginModal()">&times;</button></div>
+      <div class="modal-body">
+        <p class="modal-desc" style="text-align: center; font-size: 10pt; margin-bottom: 15px;">لطفاً رمز عبور مدیر را وارد کنید:</p>
+        <div class="form-group">
+          <input type="password" id="adminPasswordInput" class="form-control" style="text-align: center; font-size: 14pt; letter-spacing: 3px;" placeholder="****" onkeypress="if(event.key === 'Enter') confirmAdminLogin()">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeLoginModal()">انصراف</button>
+        <button class="btn btn-primary" onclick="confirmAdminLogin()">ورود</button>
+      </div>
+    </div>
+  </div>
+
   <div id="addPersonModal" class="modal-overlay">
     <div class="modal-content success-modal">
       <div class="modal-header"><h3>افزودن شخص جدید</h3><button class="close-btn" onclick="closeAddPersonModal()">&times;</button></div>
@@ -69,7 +88,6 @@
     </div>
   </div>
 
-  <!-- پاپ‌آپ ویرایش نام (جدید) -->
   <div id="editPersonModal" class="modal-overlay">
     <div class="modal-content warning-modal">
       <div class="modal-header"><h3>ویرایش نام شخص</h3><button class="close-btn" onclick="closeEditPersonModal()">&times;</button></div>
@@ -117,7 +135,7 @@
       <div class="modal-body text-center">
         <div class="success-icon" style="font-size: 40pt; margin-bottom: 10px; animation: pulseWarning 1.5s infinite;">💸</div>
         <p class="danger-title">آیا از این کار مطمئن هستید؟</p>
-        <p class="danger-sub">عدد جمع پرداخت‌شده در بالای صفحه صفر می‌شود، اما <b>تیک‌های جدول و اطلاعات شما کاملاً حفظ می‌شوند.</b></p>
+        <p class="danger-sub">عدد جمع پرداخت‌شده صفر می‌شود، اما <b>تیک‌های جدول حفظ می‌شوند.</b></p>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeResetPaidTotalModal()">انصراف</button>
