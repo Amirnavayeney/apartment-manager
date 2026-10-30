@@ -61,19 +61,17 @@
 
   </div>
 
-  <!-- ═══════════ پاپ‌آپ‌ها ═══════════ -->
-
-   <!-- ۱. پاپ‌آپ ورود مدیر (با دکمه نمایش/مخفی کردن رمز) -->
+  <!-- ۱. پاپ‌آپ ورود مدیر (با دکمه نمایش/مخفی کردن رمز) -->
   <div id="loginModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header"><h3>🔐 ورود مدیر</h3><button class="close-btn" onclick="closeLoginModal()">&times;</button></div>
       <div class="modal-body">
         <p class="modal-desc" style="text-align: center; font-size: 10pt; margin-bottom: 15px;">لطفاً رمز عبور مدیر را وارد کنید:</p>
         <div class="form-group" style="position: relative;">
-          <input type="password" id="adminPasswordInput" class="form-control" style="text-align: center; font-size: 14pt; letter-spacing: 3px; padding-left: 40px;" placeholder="****" onkeypress="if(event.key === 'Enter') confirmAdminLogin()">
+          <input type="password" id="adminPasswordInput" class="form-control" style="text-align: center; font-size: 14pt; letter-spacing: 3px; padding-left: 45px;" placeholder="****" onkeypress="if(event.key === 'Enter') confirmAdminLogin()">
           
-          <!-- دکمه چشم برای نمایش/مخفی کردن رمز -->
-          <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center;">
+          <!-- دکمه چشم -->
+          <button type="button" onclick="event.preventDefault(); togglePasswordVisibility();" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; z-index: 10;">
             <svg id="eyeIcon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
