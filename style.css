@@ -20,7 +20,29 @@ body {
 .badge.count { background: #fee2e2; color: #991b1b; }
 .badge.info { background: #f3f4f6; color: #4b5563; }
 .guide-box { background: #f8fafc; border-right: 4px solid var(--primary); padding: 10px 15px; border-radius: 8px; font-size: 9pt; color: #475569; margin-bottom: 20px; line-height: 1.6; }
-.table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+
+/* ═══ نوار راهنمای اسکرول ═══ */
+.scroll-hint {
+  display: none; /* در حالت دسکتاپ مخفی است */
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 8.5pt;
+  font-weight: 600;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  animation: pulseHint 2s infinite;
+}
+@keyframes pulseHint {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+.table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
 table { width: 100%; border-collapse: collapse; table-layout: auto; font-size: 9.5pt; }
 th, td { padding: 8px 6px; text-align: center; vertical-align: middle; border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); }
 th { background: #f9fafb; color: var(--text-muted); font-weight: 600; font-size: 8.5pt; position: relative; }
@@ -99,12 +121,45 @@ tfoot td { background: #f8fafc; font-weight: 700; font-size: 9.5pt; border-botto
 .reset-list span { font-weight: 600; font-size: 10pt; }
 .btn-reset-user { background: #fee2e2; color: var(--danger); border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 8.5pt; font-weight: 600; transition: all 0.2s; }
 .btn-reset-user:hover { background: var(--danger); color: white; }
+
+/* ═══════════════════════════════════════════════════════════
+   تنظیمات مخصوص موبایل (Responsive)
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  body { padding: 10px; font-size: 9.5pt; }
+  .app-container { padding: 15px; border-radius: 8px; }
+  
+  /* هدر مرتب‌تر شود */
+  .app-header { flex-direction: column; gap: 10px; margin-bottom: 15px; }
+  .app-header h2 { font-size: 15pt; }
+  
+  /* نمایش نوار راهنمای اسکرول در موبایل */
+  .scroll-hint { display: flex; }
+  
+  /* مهم‌ترین بخش: عرض ثابت برای جدول تا اسکرول افقی بخورد */
+  table { min-width: 750px; table-layout: fixed; font-size: 9pt; }
+  th, td { padding: 6px 4px; white-space: nowrap; } /* از شکستن متن جلوگیری می‌کند */
+  
+  /* اسم واحدها کمی جمع‌وجورتر */
+  td.name { min-width: 100px; font-size: 9pt; }
+  .sub { font-size: 7pt; }
+  
+  /* خلاصه پایین صفحه در موبایل زیر هم بروند تا بیرون نزنند */
+  .summary-bar { flex-direction: column; gap: 10px; padding: 10px; }
+  .sum-item { justify-content: space-between; width: 100%; }
+  
+  /* دکمه‌های مدیر تمام عرض شوند */
+  .toolbar { flex-direction: column; gap: 8px; }
+  .btn { width: 100%; justify-content: center; padding: 8px; }
+}
+
+/* چاپ */
 @media print {
   body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .app-container { box-shadow: none; border: none; padding: 0; }
-  .toolbar, .modal-overlay, .btn, .action-col, .tog-btn, .th-btn { display: none !important; }
+  .app-container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+  .toolbar, .modal-overlay, .btn, .action-col, .tog-btn, .th-btn, .scroll-hint { display: none !important; }
   .paid-anim, .prev-paid { background: transparent; border: 1px solid var(--success); padding: 2px 6px; animation: none; }
   .badge-settled { background: transparent; border: 1px solid var(--success); color: var(--success); box-shadow: none; }
-  table { font-size: 8pt; }
-  th, td { padding: 4px; }
+  table { min-width: 100%; font-size: 8pt; }
+  th, td { padding: 4px; white-space: normal; }
 }
