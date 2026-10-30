@@ -6,22 +6,26 @@
   <title>مدیریت هزینه‌های آپارتمان</title>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
   <div class="app-container">
     
-    <header class="app-header">
-      <h2>🏢 مدیریت هزینه‌های آپارتمان</h2>
-      <div class="meta-info">
-        <span class="badge date">جدول داینامیک</span>
-        <span class="badge count">بدهکاران: <b id="debtCount">۰</b> نفر</span>
-        <span class="badge info">تمام مبالغ به تومان</span>
-      </div>
+    <header class="app-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>🏢 هزینه‌های آپارتمان</h2>
+      <!-- دکمه ورود مدیر (برای همسایه‌ها پنهان است یا فقط دکمه لاگین را می‌بینند) -->
+      <button id="adminToggleBtn" class="btn btn-secondary" style="padding: 5px 10px; font-size: 8pt;" onclick="toggleAdminMode()">🔒 ورود مدیر</button>
     </header>
 
+    <div class="meta-info" style="justify-content: center; margin-bottom: 15px;">
+      <span class="badge date">جدول آنلاین (ابر)</span>
+      <span class="badge count">بدهکاران: <b id="debtCount">۰</b> نفر</span>
+      <span class="badge info" id="modeBadge">حالت: فقط خواندن</span>
+    </div>
+
     <div class="guide-box">
-      <div><b>💡 راهنما:</b> با دکمه‌های <b>+</b> در هدر جدول می‌توانید ستون یا شخص جدید اضافه کنید. با دکمه <b>×</b> می‌توانید ستون یا شخص را حذف کنید.</div>
+      <div><b>💡 راهنما:</b> این جدول به صورت خودکار با سیستم مدیر همگام‌سازی می‌شود. شما در حال مشاهده آخرین وضعیت هستید.</div>
     </div>
 
     <div class="table-wrapper">
@@ -43,26 +47,16 @@
       </div>
     </div>
 
-    <!-- دکمه‌ها -->
-    <div class="toolbar">
+    <!-- این بخش فقط در حالت مدیر نمایش داده می‌شود -->
+    <div class="toolbar" id="adminToolbar" style="display: none;">
       <button class="btn btn-primary" onclick="window.print()">چاپ</button>
-      <button class="btn btn-warning" onclick="openResetModal()">بازنشانی فردی</button>
       <button class="btn btn-info" onclick="backupData()">خروجی (Backup)</button>
-      <label class="btn btn-secondary" style="cursor: pointer;">
-        بازیابی
-        <input type="file" id="fileInput" accept=".json" onchange="restoreData(event)" style="display: none;">
-      </label>
-      
-      <!-- دکمه صفر کردن جمع پرداخت‌شده (متصل به پاپ‌آپ جدید) -->
-      <button class="btn btn-success" onclick="openResetPaidTotalModal()" title="صفر کردن عدد جمع پرداخت‌شده بدون پاک کردن تیک‌ها">
-        صفر کردن جمع پرداخت‌شده
-      </button>
+      <button class="btn btn-success" onclick="openResetPaidTotalModal()">صفر کردن جمع پرداخت‌شده</button>
     </div>
 
   </div>
 
-  <!-- ═══════════ پاپ‌آپ‌های اصلی ═══════════ -->
-
+  <!-- پاپ‌آپ‌ها -->
   <div id="addPersonModal" class="modal-overlay">
     <div class="modal-content success-modal">
       <div class="modal-header"><h3>افزودن شخص جدید</h3><button class="close-btn" onclick="closeAddPersonModal()">&times;</button></div>
@@ -98,23 +92,6 @@
     </div>
   </div>
 
-  <div id="resetModal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header"><h3>بازنشانی حساب شخص</h3><button class="close-btn" onclick="closeResetModal()">&times;</button></div>
-      <p class="modal-desc">شخص مورد نظر را انتخاب کنید تا تمام پرداخت‌های او صفر شود:</p>
-      <ul id="resetList" class="reset-list"></ul>
-    </div>
-  </div>
-
-  <div id="resetConfirmModal" class="modal-overlay">
-    <div class="modal-content warning-modal">
-      <div class="modal-header"><h3>تایید بازنشانی</h3><button class="close-btn" onclick="closeResetConfirmModal()">&times;</button></div>
-      <div class="modal-body text-center"><div class="warning-icon">🔄</div><p class="danger-title">آیا از بازنشانی مطمئن هستید؟</p><p class="danger-sub" id="resetConfirmName"></p></div>
-      <div class="modal-actions"><button class="btn btn-secondary" onclick="closeResetConfirmModal()">انصراف</button><button class="btn btn-warning" onclick="confirmResetSingleUser()">بله</button></div>
-    </div>
-  </div>
-
-  <!-- پاپ‌آپ جدید: تایید صفر کردن جمع پرداخت‌شده -->
   <div id="resetPaidTotalModal" class="modal-overlay">
     <div class="modal-content success-modal" style="border-top-color: #10b981;">
       <div class="modal-header"><h3 style="color: #047857;">صفر کردن جمع پرداخت‌شده</h3><button class="close-btn" onclick="closeResetPaidTotalModal()">&times;</button></div>
@@ -131,6 +108,27 @@
   </div>
 
   <script src="data.js"></script>
-  <script src="script.js"></script>
+  
+  <!-- کدهای اتصال به Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgKLRy5vrykBIFWH34RjoDKA18MiY3IMA",
+      authDomain: "apartment-manager-3b066.firebaseapp.com",
+      databaseURL: "https://apartment-manager-3b066-default-rtdb.firebaseio.com",
+      projectId: "apartment-manager-3b066",
+      storageBucket: "apartment-manager-3b066.firebasestorage.app",
+      messagingSenderId: "1038630638765",
+      appId: "1:1038630638765:web:81ae149ca38272d039a224"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    window.db = getDatabase(app);
+    window.dispatchEvent(new Event('firebaseReady'));
+  </script>
+  
+  <script type="module" src="script.js"></script>
 </body>
 </html>
