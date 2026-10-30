@@ -36,7 +36,6 @@ window.toggleAdminMode = function() {
   }
 };
 
-// ─── تابع راه‌اندازی فایربیس ───
 function initApp() {
   const dataRef = ref(window.db, DATA_PATH);
   onValue(dataRef, (snapshot) => {
@@ -46,7 +45,6 @@ function initApp() {
       if (!appData.paid) appData.paid = {};
       if (!appData.details) appData.details = {};
     } else {
-      // استفاده از window.initialData
       appData = JSON.parse(JSON.stringify(window.initialData)); 
       appData.paid = appData.paid || {};
       saveData();
@@ -55,7 +53,6 @@ function initApp() {
   });
 }
 
-// 🔥 راه‌حل مشکل: چک کردن مداوم تا فایربیس لود شود
 const checkFirebase = setInterval(() => {
   if (window.db) {
     clearInterval(checkFirebase);
@@ -70,11 +67,7 @@ function saveData() {
 }
 
 function render() {
-  // 🛡️ خط محافظ: اگر اطلاعات هنوز لود نشده، کاری نکن (جلوگیری از کرش)
-  if (!appData || !appData.columns) {
-    console.log("منتظر دریافت اطلاعات از دیتابیس...");
-    return; 
-  }
+  if (!appData || !appData.columns) return;
 
   const thead = document.getElementById('tableHead');
   const tbody = document.getElementById('tbody');
@@ -103,9 +96,13 @@ function render() {
     let rowRemaining = 0;
     let rowHtml = `<tr><td>${(index + 1).toLocaleString('fa-IR')}</td>`;
     
+    // ⬇️ دکمه ویرایش به کنار دکمه حذف اضافه شد ⬇️
     rowHtml += `<td class="name">
       <span>${person.name}</span>
-      ${isAdmin ? `<button class="th-btn del" onclick="askDeletePerson('${person.id}')">×</button>` : ''}
+      <div style="display:flex; gap:2px;">
+        ${isAdmin ? `<button class="th-btn edit" onclick="openEditPersonModal('${person.id}')" title="ویرایش نام">✎</button>` : ''}
+        ${isAdmin ? `<button class="th-btn del" onclick="askDeletePerson('${person.id}')" title="حذف">×</button>` : ''}
+      </div>
     </td>`;
     
     appData.columns.forEach(col => {
@@ -152,7 +149,45 @@ function render() {
   document.getElementById('sumPaidTotal').textContent = fmt(displayTotal);
 }
 
-// توابع ویرایش (فقط مدیر)
+// ─── توابع ویرایش نام (جدید) ───
+window.openEditPersonModal = function(id) {
+  if (!isAdmin) return;
+  const person = appData.people.find(p => p.id === id);
+  if (person) {
+    document.getElementById('editPersonId').value = id;
+    document.getElementById('editPersonName').value = person.name;
+    document.getElementById('editPersonName').classList.remove('invalid');
+    document.getElementById('editPersonModal').classList.add('active');
+    setTimeout(() => document.getElementById('editPersonName').focus(), 300);
+  }
+}
+
+window.closeEditPersonModal = function() {
+  document.getElementById('editPersonModal').classList.remove('active');
+}
+
+window.confirmEditPerson = function() {
+  if (!isAdmin) return;
+  const id = document.getElementById('editPersonId').value;
+  const newName = document.getElementById('editPersonName').value.trim();
+  
+  if (!newName) {
+    const input = document.getElementById('editPersonName');
+    input.classList.add('invalid');
+    setTimeout(() => input.classList.remove('invalid'), 500);
+    return;
+  }
+  
+  const person = appData.people.find(p => p.id === id);
+  if (person) {
+    person.name = newName;
+    saveData(); // ذخیره در فایربیس
+    closeEditPersonModal();
+    render();
+  }
+}
+
+// ─── بقیه توابع تسویه و ویرایش (فقط مدیر) ───
 window.togglePaid = function(id, colId) {
   if (!isAdmin) return;
   const key = `${id}:${colId}`;
