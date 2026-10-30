@@ -62,23 +62,22 @@
 
   <!-- ═══════════ پاپ‌آپ‌ها ═══════════ -->
 
-  <!-- ۱. پاپ‌آپ ورود مدیر (با دکمه چشم اصلاح‌شده) -->
+  <!-- ۱. پاپ‌آپ ورود مدیر -->
   <div id="loginModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header"><h3>🔐 ورود مدیر</h3><button class="close-btn" onclick="closeLoginModal()">&times;</button></div>
       <div class="modal-body">
         <p class="modal-desc" style="text-align: center; font-size: 10pt; margin-bottom: 15px;">لطفاً رمز عبور مدیر را وارد کنید:</p>
         
-        <div style="position: relative; width: 100%;">
-          <input type="password" id="adminPasswordInput" class="form-control" style="text-align: center; font-size: 14pt; letter-spacing: 3px; padding-left: 45px; padding-right: 45px;" placeholder="****" onkeypress="if(event.key === 'Enter') confirmAdminLogin()">
-          
-          <!-- دکمه چشم -->
-          <button type="button" onclick="event.preventDefault(); togglePasswordVisibility();" style="position: absolute; left: 10px; top: 0; bottom: 0; margin: auto; background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; z-index: 10;">
+        <!-- کادر فیلد رمز با Flexbox -->
+        <div class="password-wrapper">
+          <button type="button" onclick="event.preventDefault(); togglePasswordVisibility();" class="eye-btn">
             <svg id="eyeIcon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
           </button>
+          <input type="password" id="adminPasswordInput" class="password-input" placeholder="****" onkeypress="if(event.key === 'Enter') confirmAdminLogin()">
         </div>
 
       </div>
