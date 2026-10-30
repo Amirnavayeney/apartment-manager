@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مدیریت هزینه‌های آپارتمان</title>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <header class="app-header">
+      <h2>🏢 مدیریت هزینه‌های آپارتمان</h2>
+      <div class="meta-info">
+        <span class="badge date">جدول داینامیک</span>
+        <span class="badge count">بدهکاران: <b id="debtCount">۰</b> نفر</span>
+        <span class="badge info">تمام مبالغ به تومان</span>
+      </div>
+    </header>
+
+    <div class="guide-box">
+      <div><b>💡 راهنما:</b> با دکمه‌های <b>+</b> در هدر جدول می‌توانید ستون یا شخص جدید اضافه کنید. با دکمه <b>×</b> می‌توانید ستون یا شخص را حذف کنید.</div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tbody"></tbody>
+        <tfoot id="tableFoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="summary-bar">
+      <div class="sum-item success">
+        <span>✅ جمع پرداخت‌شده:</span>
+        <b id="sumPaidTotal">۰</b>
+      </div>
+      <div class="sum-item danger">
+        <span>❌ جمع مانده:</span>
+        <b id="grandTotal2">—</b>
+      </div>
+    </div>
+
+    <!-- دکمه‌ها -->
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="window.print()">چاپ</button>
+      <button class="btn btn-warning" onclick="openResetModal()">بازنشانی فردی</button>
+      <button class="btn btn-info" onclick="backupData()">خروجی (Backup)</button>
+      <label class="btn btn-secondary" style="cursor: pointer;">
+        بازیابی
+        <input type="file" id="fileInput" accept=".json" onchange="restoreData(event)" style="display: none;">
+      </label>
+      
+      <!-- دکمه صفر کردن جمع پرداخت‌شده (متصل به پاپ‌آپ جدید) -->
+      <button class="btn btn-success" onclick="openResetPaidTotalModal()" title="صفر کردن عدد جمع پرداخت‌شده بدون پاک کردن تیک‌ها">
+        صفر کردن جمع پرداخت‌شده
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ پاپ‌آپ‌های اصلی ═══════════ -->
+
+  <div id="addPersonModal" class="modal-overlay">
+    <div class="modal-content success-modal">
+      <div class="modal-header"><h3>افزودن شخص جدید</h3><button class="close-btn" onclick="closeAddPersonModal()">&times;</button></div>
+      <div class="modal-body"><div class="form-group"><label>نام شخص یا واحد:</label><input type="text" id="newPersonName" class="form-control" placeholder="مثلاً: علی رضایی" onkeypress="if(event.key === 'Enter') confirmAddPerson()"></div></div>
+      <div class="modal-actions"><button class="btn btn-secondary" onclick="closeAddPersonModal()">انصراف</button><button class="btn btn-success" onclick="confirmAddPerson()">افزودن</button></div>
+    </div>
+  </div>
+
+  <div id="addColumnModal" class="modal-overlay">
+    <div class="modal-content success-modal">
+      <div class="modal-header"><h3 id="addColumnTitle">افزودن ستون جدید</h3><button class="close-btn" onclick="closeAddColumnModal()">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label id="addColumnLabel">نام ستون:</label><input type="text" id="newColumnName" class="form-control" placeholder="مثلاً: تعمیرات" onkeypress="if(event.key === 'Enter') confirmAddColumn()"></div>
+        <div class="form-group"><label>مبلغ پیش‌فرض (تومان):</label><input type="number" id="newColumnAmount" class="form-control" value="0" step="10000" onkeypress="if(event.key === 'Enter') confirmAddColumn()"></div>
+      </div>
+      <div class="modal-actions"><button class="btn btn-secondary" onclick="closeAddColumnModal()">انصراف</button><button class="btn btn-success" onclick="confirmAddColumn()">افزودن</button></div>
+    </div>
+  </div>
+
+  <div id="deletePersonModal" class="modal-overlay">
+    <div class="modal-content danger-modal">
+      <div class="modal-header"><h3>حذف شخص</h3><button class="close-btn" onclick="closeDeletePersonModal()">&times;</button></div>
+      <div class="modal-body text-center"><div class="danger-icon">⚠️</div><p class="danger-title">آیا از حذف این شخص مطمئن هستید؟</p><p class="danger-sub" id="deletePersonName"></p></div>
+      <div class="modal-actions"><button class="btn btn-secondary" onclick="closeDeletePersonModal()">انصراف</button><button class="btn btn-danger" onclick="confirmDeletePerson()">بله</button></div>
+    </div>
+  </div>
+
+  <div id="deleteColumnModal" class="modal-overlay">
+    <div class="modal-content danger-modal">
+      <div class="modal-header"><h3>حذف ستون</h3><button class="close-btn" onclick="closeDeleteColumnModal()">&times;</button></div>
+      <div class="modal-body text-center"><div class="danger-icon">⚠️</div><p class="danger-title">آیا از حذف این ستون مطمئن هستید؟</p><p class="danger-sub" id="deleteColumnName">این عملیات برای همه افراد اعمال می‌شود.</p></div>
+      <div class="modal-actions"><button class="btn btn-secondary" onclick="closeDeleteColumnModal()">انصراف</button><button class="btn btn-danger" onclick="confirmDeleteColumn()">بله</button></div>
+    </div>
+  </div>
+
+  <div id="resetModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header"><h3>بازنشانی حساب شخص</h3><button class="close-btn" onclick="closeResetModal()">&times;</button></div>
+      <p class="modal-desc">شخص مورد نظر را انتخاب کنید تا تمام پرداخت‌های او صفر شود:</p>
+      <ul id="resetList" class="reset-list"></ul>
+    </div>
+  </div>
+
+  <div id="resetConfirmModal" class="modal-overlay">
+    <div class="modal-content warning-modal">
+      <div class="modal-header"><h3>تایید بازنشانی</h3><button class="close-btn" onclick="closeResetConfirmModal()">&times;</button></div>
+      <div class="modal-body text-center"><div class="warning-icon">🔄</div><p class="danger-title">آیا از بازنشانی مطمئن هستید؟</p><p class="danger-sub" id="resetConfirmName"></p></div>
+      <div class="modal-actions"><button class="btn btn-secondary" onclick="closeResetConfirmModal()">انصراف</button><button class="btn btn-warning" onclick="confirmResetSingleUser()">بله</button></div>
+    </div>
+  </div>
+
+  <!-- پاپ‌آپ جدید: تایید صفر کردن جمع پرداخت‌شده -->
+  <div id="resetPaidTotalModal" class="modal-overlay">
+    <div class="modal-content success-modal" style="border-top-color: #10b981;">
+      <div class="modal-header"><h3 style="color: #047857;">صفر کردن جمع پرداخت‌شده</h3><button class="close-btn" onclick="closeResetPaidTotalModal()">&times;</button></div>
+      <div class="modal-body text-center">
+        <div class="success-icon" style="font-size: 40pt; margin-bottom: 10px; animation: pulseWarning 1.5s infinite;">💸</div>
+        <p class="danger-title">آیا از این کار مطمئن هستید؟</p>
+        <p class="danger-sub">عدد جمع پرداخت‌شده در بالای صفحه صفر می‌شود، اما <b>تیک‌های جدول و اطلاعات شما کاملاً حفظ می‌شوند.</b></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeResetPaidTotalModal()">انصراف</button>
+        <button class="btn btn-success" onclick="confirmResetPaidTotal()">بله، صفر شود</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
