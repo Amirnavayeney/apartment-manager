@@ -12,7 +12,7 @@ function fmt(n) { return n === 0 ? '۰' : n.toLocaleString('fa-IR'); }
 window.toggleAdminMode = function() {
   if (!isAdmin) {
     const pass = prompt("لطفاً رمز عبور مدیر را وارد کنید (پیش‌فرض: 1234):");
-    if (pass === "1234") {
+    if (pass === "A45614561A@") {
       isAdmin = true;
       document.getElementById('adminToolbar').style.display = 'flex';
       document.getElementById('modeBadge').innerText = "حالت: مدیر ساختمان 👑";
