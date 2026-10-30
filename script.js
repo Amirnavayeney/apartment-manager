@@ -40,7 +40,7 @@ window.closeLoginModal = function() {
 
 window.confirmAdminLogin = function() {
   const pass = document.getElementById('adminPasswordInput').value;
-  if (pass === "1234") { // ⬅️ رمز عبور دلخواه خود را اینجا تغییر دهید
+  if (pass === "a1234@MIR") { // ⬅️ رمز عبور دلخواه خود را اینجا تغییر دهید
     isAdmin = true;
     document.getElementById('adminToolbar').style.display = 'flex';
     document.getElementById('modeBadge').innerText = "حالت: مدیر ساختمان 👑";
