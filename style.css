@@ -21,6 +21,7 @@ body {
 .badge.info { background: #f3f4f6; color: #4b5563; }
 .guide-box { background: #f8fafc; border-right: 4px solid var(--primary); padding: 10px 15px; border-radius: 8px; font-size: 9pt; color: #475569; margin-bottom: 20px; line-height: 1.6; }
 
+/* نوار راهنمای اسکرول */
 .scroll-hint {
   display: none;
   background: #e0e7ff;
@@ -87,6 +88,51 @@ tfoot td { background: #f8fafc; font-weight: 700; font-size: 9.5pt; border-botto
 .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
 .btn-info { background: var(--info); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 .btn-info:hover { background: #2563eb; transform: translateY(-2px); }
+
+/* ═══ استایل پاپ‌آپ ورود مدیر ═══ */
+.password-wrapper {
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 10px;
+  transition: all 0.2s;
+}
+.password-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  background: #ffffff;
+}
+.password-wrapper.invalid {
+  border-color: var(--danger);
+  animation: shake 0.4s ease-in-out;
+}
+.eye-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  padding: 0;
+  width: 32px;
+  transition: color 0.2s;
+}
+.eye-btn:hover { color: var(--primary); }
+.password-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 14pt;
+  letter-spacing: 3px;
+  padding: 10px 0;
+  outline: none;
+  font-family: inherit;
+  color: var(--text-main);
+}
 
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 1000; }
 .modal-overlay.active { opacity: 1; visibility: visible; }
