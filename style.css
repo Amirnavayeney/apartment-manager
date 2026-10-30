@@ -21,9 +21,8 @@ body {
 .badge.info { background: #f3f4f6; color: #4b5563; }
 .guide-box { background: #f8fafc; border-right: 4px solid var(--primary); padding: 10px 15px; border-radius: 8px; font-size: 9pt; color: #475569; margin-bottom: 20px; line-height: 1.6; }
 
-/* ═══ نوار راهنمای اسکرول ═══ */
 .scroll-hint {
-  display: none; /* در حالت دسکتاپ مخفی است */
+  display: none;
   background: #e0e7ff;
   color: #4338ca;
   padding: 8px 12px;
@@ -53,6 +52,9 @@ td.name { text-align: right; font-weight: 700; color: var(--text-main); padding-
 .th-btn:hover { background: #d1d5db; }
 .th-btn.add:hover { background: #bbf7d0; color: #15803d; }
 .th-btn.del:hover { background: #fecaca; color: #b91c1c; }
+.th-btn.edit { color: #3b82f6; background: #eff6ff; }
+.th-btn.edit:hover { background: #dbeafe; color: #1d4ed8; }
+
 .sub { display: block; font-size: 7.5pt; color: var(--text-muted); font-weight: normal; margin-top: 4px; }
 .prev-paid { display: inline-block; background: #f0fdf4; color: #15803d; padding: 3px 8px; border-radius: 6px; font-size: 8pt; font-weight: 700; border: 1px solid #bbf7d0; }
 .badge-settled { display: inline-block; background: var(--success); color: white; padding: 4px 10px; border-radius: 6px; font-size: 9pt; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); animation: popIn 0.4s ease-out; }
@@ -85,6 +87,7 @@ tfoot td { background: #f8fafc; font-weight: 700; font-size: 9.5pt; border-botto
 .btn-danger:hover { background: #dc2626; transform: translateY(-2px); }
 .btn-info { background: var(--info); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 .btn-info:hover { background: #2563eb; transform: translateY(-2px); }
+
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 1000; }
 .modal-overlay.active { opacity: 1; visibility: visible; }
 .modal-content { background: #ffffff; width: 90%; max-width: 400px; border-radius: 16px; padding: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: scale(0.8) translateY(30px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -122,46 +125,22 @@ tfoot td { background: #f8fafc; font-weight: 700; font-size: 9.5pt; border-botto
 .btn-reset-user { background: #fee2e2; color: var(--danger); border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 8.5pt; font-weight: 600; transition: all 0.2s; }
 .btn-reset-user:hover { background: var(--danger); color: white; }
 
-/* ═══════════════════════════════════════════════════════════
-   تنظیمات مخصوص موبایل (Responsive)
-   ═══════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   body { padding: 10px; font-size: 9.5pt; }
   .app-container { padding: 15px; border-radius: 8px; }
-  
-  /* هدر مرتب‌تر شود */
   .app-header { flex-direction: column; gap: 10px; margin-bottom: 15px; }
   .app-header h2 { font-size: 15pt; }
-  
-  /* نمایش نوار راهنمای اسکرول در موبایل */
   .scroll-hint { display: flex; }
-  
-  /* مهم‌ترین بخش: عرض ثابت برای جدول تا اسکرول افقی بخورد */
   table { min-width: 750px; table-layout: fixed; font-size: 9pt; }
-  th, td { padding: 6px 4px; white-space: nowrap; } /* از شکستن متن جلوگیری می‌کند */
-  
-  /* اسم واحدها کمی جمع‌وجورتر */
+  th, td { padding: 6px 4px; white-space: nowrap; }
   td.name { min-width: 100px; font-size: 9pt; }
   .sub { font-size: 7pt; }
-  
-  /* خلاصه پایین صفحه در موبایل زیر هم بروند تا بیرون نزنند */
   .summary-bar { flex-direction: column; gap: 10px; padding: 10px; }
   .sum-item { justify-content: space-between; width: 100%; }
-  
-  /* دکمه‌های مدیر تمام عرض شوند */
   .toolbar { flex-direction: column; gap: 8px; }
   .btn { width: 100%; justify-content: center; padding: 8px; }
 }
-/* استایل دکمه ویرایش (مداد) */
-.th-btn.edit {
-  color: #3b82f6;
-  background: #eff6ff;
-}
-.th-btn.edit:hover {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-/* چاپ */
+
 @media print {
   body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .app-container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
