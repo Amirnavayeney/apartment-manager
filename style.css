@@ -152,7 +152,15 @@ tfoot td { background: #f8fafc; font-weight: 700; font-size: 9.5pt; border-botto
   .toolbar { flex-direction: column; gap: 8px; }
   .btn { width: 100%; justify-content: center; padding: 8px; }
 }
-
+/* استایل دکمه ویرایش (مداد) */
+.th-btn.edit {
+  color: #3b82f6;
+  background: #eff6ff;
+}
+.th-btn.edit:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
 /* چاپ */
 @media print {
   body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
