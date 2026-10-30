@@ -1,5 +1,12 @@
 import { ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+// ⬇️ کدهای مخفی کردن آدرس گیت‌هاب در تلگرام ⬇️
+if (window.Telegram && window.Telegram.WebApp) {
+  window.Telegram.WebApp.ready();
+  window.Telegram.WebApp.expand(); // باز شدن تمام‌صفحه
+  window.Telegram.WebApp.setHeaderColor('#f3f4f6');
+}
+
 const DATA_PATH = 'apartment/data'; 
 let appData = {};
 let isAdmin = false;
@@ -9,22 +16,15 @@ const CHECK_SVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org
 
 function fmt(n) { return n === 0 ? '۰' : n.toLocaleString('fa-IR'); }
 
+// ═══════════ مدیریت ورود مدیر ═══════════
 window.toggleAdminMode = function() {
   if (!isAdmin) {
-    const pass = prompt("لطفاً رمز عبور مدیر را وارد کنید (پیش‌فرض: 1234):");
-    if (pass === "A45614561A@") {
-      isAdmin = true;
-      document.getElementById('adminToolbar').style.display = 'flex';
-      document.getElementById('modeBadge').innerText = "حالت: مدیر ساختمان 👑";
-      document.getElementById('modeBadge').style.background = "#d1fae5";
-      document.getElementById('modeBadge').style.color = "#047857";
-      document.getElementById('adminToggleBtn').innerText = "خروج از حالت مدیر";
-      document.getElementById('adminToggleBtn').className = "btn btn-danger";
-      render();
-    } else {
-      alert("رمز عبور اشتباه است!");
-    }
+    // باز کردن پاپ‌آپ رمز (به جای prompt)
+    document.getElementById('adminPasswordInput').value = '';
+    document.getElementById('loginModal').classList.add('active');
+    setTimeout(() => document.getElementById('adminPasswordInput').focus(), 300);
   } else {
+    // خروج از حالت مدیر
     isAdmin = false;
     document.getElementById('adminToolbar').style.display = 'none';
     document.getElementById('modeBadge').innerText = "حالت: فقط خواندن";
@@ -36,6 +36,30 @@ window.toggleAdminMode = function() {
   }
 };
 
+window.closeLoginModal = function() {
+  document.getElementById('loginModal').classList.remove('active');
+}
+
+window.confirmAdminLogin = function() {
+  const pass = document.getElementById('adminPasswordInput').value;
+  if (pass === "1234") { // ⬅️ رمز عبور دلخواه خود را اینجا تغییر دهید
+    isAdmin = true;
+    document.getElementById('adminToolbar').style.display = 'flex';
+    document.getElementById('modeBadge').innerText = "حالت: مدیر ساختمان 👑";
+    document.getElementById('modeBadge').style.background = "#d1fae5";
+    document.getElementById('modeBadge').style.color = "#047857";
+    document.getElementById('adminToggleBtn').innerText = "خروج از حالت مدیر";
+    document.getElementById('adminToggleBtn').className = "btn btn-danger";
+    closeLoginModal();
+    render();
+  } else {
+    const input = document.getElementById('adminPasswordInput');
+    input.classList.add('invalid');
+    setTimeout(() => input.classList.remove('invalid'), 500);
+  }
+}
+
+// ═══════════ اتصال به فایربیس ═══════════
 function initApp() {
   const dataRef = ref(window.db, DATA_PATH);
   onValue(dataRef, (snapshot) => {
@@ -66,6 +90,7 @@ function saveData() {
   set(dataRef, appData);
 }
 
+// ═══════════ رندر جدول ═══════════
 function render() {
   if (!appData || !appData.columns) return;
 
@@ -96,7 +121,6 @@ function render() {
     let rowRemaining = 0;
     let rowHtml = `<tr><td>${(index + 1).toLocaleString('fa-IR')}</td>`;
     
-    // ⬇️ دکمه ویرایش به کنار دکمه حذف اضافه شد ⬇️
     rowHtml += `<td class="name">
       <span>${person.name}</span>
       <div style="display:flex; gap:2px;">
@@ -149,7 +173,7 @@ function render() {
   document.getElementById('sumPaidTotal').textContent = fmt(displayTotal);
 }
 
-// ─── توابع ویرایش نام (جدید) ───
+// ═══════════ توابع ویرایش نام ═══════════
 window.openEditPersonModal = function(id) {
   if (!isAdmin) return;
   const person = appData.people.find(p => p.id === id);
@@ -181,13 +205,13 @@ window.confirmEditPerson = function() {
   const person = appData.people.find(p => p.id === id);
   if (person) {
     person.name = newName;
-    saveData(); // ذخیره در فایربیس
+    saveData();
     closeEditPersonModal();
     render();
   }
 }
 
-// ─── بقیه توابع تسویه و ویرایش (فقط مدیر) ───
+// ═══════════ بقیه توابع ═══════════
 window.togglePaid = function(id, colId) {
   if (!isAdmin) return;
   const key = `${id}:${colId}`;
