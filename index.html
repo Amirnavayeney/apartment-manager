@@ -156,6 +156,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     
     const firebaseConfig = {
       apiKey: "AIzaSyDgKLRy5vrykBIFWH34RjoDKA18MiY3IMA",
@@ -169,6 +170,7 @@
     
     const app = initializeApp(firebaseConfig);
     window.db = getDatabase(app);
+    window.auth = getAuth(app); // سیستم احراز هویت
     window.dispatchEvent(new Event('firebaseReady'));
   </script>
   <script type="module" src="script.js"></script>
