@@ -1,5 +1,7 @@
 import { ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+// ⬇️ کدهای مخفی کردن آدرس در تلگرام ⬇️
 if (window.Telegram && window.Telegram.WebApp) {
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
@@ -18,8 +20,8 @@ function fmt(n) { return n === 0 ? '۰' : n.toLocaleString('fa-IR'); }
 window.toggleAdminMode = function() {
   if (!isAdmin) {
     document.getElementById('adminPasswordInput').value = '';
-    document.getElementById('adminPasswordInput').type = 'password'; // برگرداندن به حالت مخفی
-    document.getElementById('eyeIcon').innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`; // آیکون باز
+    document.getElementById('adminPasswordInput').type = 'password';
+    document.getElementById('eyeIcon').innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
     document.getElementById('loginModal').classList.add('active');
     setTimeout(() => document.getElementById('adminPasswordInput').focus(), 300);
   } else {
@@ -40,21 +42,26 @@ window.closeLoginModal = function() {
 
 window.confirmAdminLogin = function() {
   const pass = document.getElementById('adminPasswordInput').value;
-  if (pass === "a1234@MIR") { // ⬅️ رمز عبور دلخواه خود را اینجا تغییر دهید
-    isAdmin = true;
-    document.getElementById('adminToolbar').style.display = 'flex';
-    document.getElementById('modeBadge').innerText = "حالت: مدیر ساختمان 👑";
-    document.getElementById('modeBadge').style.background = "#d1fae5";
-    document.getElementById('modeBadge').style.color = "#047857";
-    document.getElementById('adminToggleBtn').innerText = "خروج از حالت مدیر";
-    document.getElementById('adminToggleBtn').className = "btn btn-danger";
-    closeLoginModal();
-    render();
-  } else {
-    const wrapper = document.querySelector('.password-wrapper');
-    wrapper.classList.add('invalid');
-    setTimeout(() => wrapper.classList.remove('invalid'), 500);
-  }
+  const adminEmail = "ap.mehr.blok2@gmail.com"; // ⬅️ ایمیل اختصاصی شما
+  
+  // سیستم ورود امن گوگل
+  signInWithEmailAndPassword(window.auth, adminEmail, pass)
+    .then((userCredential) => {
+      isAdmin = true;
+      document.getElementById('adminToolbar').style.display = 'flex';
+      document.getElementById('modeBadge').innerText = "حالت: مدیر ساختمان 👑";
+      document.getElementById('modeBadge').style.background = "#d1fae5";
+      document.getElementById('modeBadge').style.color = "#047857";
+      document.getElementById('adminToggleBtn').innerText = "خروج از حالت مدیر";
+      document.getElementById('adminToggleBtn').className = "btn btn-danger";
+      closeLoginModal();
+      render();
+    })
+    .catch((error) => {
+      const wrapper = document.querySelector('.password-wrapper');
+      wrapper.classList.add('invalid');
+      setTimeout(() => wrapper.classList.remove('invalid'), 500);
+    });
 }
 
 window.togglePasswordVisibility = function() {
