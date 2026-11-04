@@ -42,7 +42,7 @@ window.closeLoginModal = function() {
 
 window.confirmAdminLogin = function() {
   const pass = document.getElementById('adminPasswordInput').value;
-  const adminEmail = "amirarjang2@gmail.com"; // ⬅️ ایمیل اختصاصی شما
+  const adminEmail = "ap.mehr.blok2@gmail.com"; // ⬅️ ایمیل اختصاصی شما
   
   // سیستم ورود امن گوگل
   signInWithEmailAndPassword(window.auth, adminEmail, pass)
@@ -160,8 +160,16 @@ function render() {
       }
       
       if (amount === 0) {
-        if (col.type === 'fixed') rowHtml += `<td><span class="prev-paid">تسویه</span></td>`;
-        else rowHtml += `<td><span style="color:#9ca3af;">—</span></td>`;
+        if (col.type === 'fixed') {
+          // ⬇️ استثنا برای علیرضا آرمند در ستون بدهی قبلی ⬇️
+          if (person.id === 'p_armand' && col.id === 'col_old') {
+            rowHtml += `<td><span style="color:#9ca3af; font-weight:bold;">-</span></td>`;
+          } else {
+            rowHtml += `<td><span class="prev-paid">تسویه</span></td>`;
+          }
+        } else {
+          rowHtml += `<td><span style="color:#9ca3af;">—</span></td>`;
+        }
       } else if (isPaid) {
         rowHtml += `<td><div class="paid-anim">${CHECK_SVG} تسویه</div>${isAdmin ? `<button class="tog-btn undo" onclick="togglePaid('${person.id}','${col.id}')">↺</button>` : ''}</td>`;
       } else {
