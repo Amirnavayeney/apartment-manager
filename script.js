@@ -42,7 +42,7 @@ window.closeLoginModal = function() {
 
 window.confirmAdminLogin = function() {
   const pass = document.getElementById('adminPasswordInput').value;
-  const adminEmail = "ap.mehr.blok2@gmail.com"; // ⬅️ ایمیل اختصاصی شما
+  const adminEmail = "amirarjang2@gmail.com"; // ⬅️ ایمیل اختصاصی شما
   
   // سیستم ورود امن گوگل
   signInWithEmailAndPassword(window.auth, adminEmail, pass)
