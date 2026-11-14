@@ -1,7 +1,6 @@
 import { ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// ⬇️ کدهای مخفی کردن آدرس در تلگرام ⬇️
 if (window.Telegram && window.Telegram.WebApp) {
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
@@ -13,6 +12,7 @@ let isAdmin = false;
 
 const TRASH_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="15" width="80" height="15" rx="5" fill="#ef4444"/><rect x="35" y="5" width="30" height="10" rx="4" fill="#ef4444"/><path d="M 15 32 L 85 32 L 75 92 A 10 10 0 0 1 65 100 L 35 100 A 10 10 0 0 1 25 92 Z" fill="#ef4444"/><rect x="32" y="45" width="8" height="35" rx="4" fill="white"/><rect x="46" y="45" width="8" height="35" rx="4" fill="white"/><rect x="60" y="45" width="8" height="35" rx="4" fill="white"/></svg>`;
 const CHECK_SVG = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const MONEY_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="#3b82f6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>`;
 
 function fmt(n) { return n === 0 ? '۰' : n.toLocaleString('fa-IR'); }
 
@@ -36,17 +36,14 @@ window.toggleAdminMode = function() {
   }
 };
 
-window.closeLoginModal = function() {
-  document.getElementById('loginModal').classList.remove('active');
-}
+window.closeLoginModal = function() { document.getElementById('loginModal').classList.remove('active'); }
 
 window.confirmAdminLogin = function() {
   const pass = document.getElementById('adminPasswordInput').value;
-  const adminEmail = "amirarjang2@gmail.com"; // ⬅️ ایمیل اختصاصی شما
+  const adminEmail = "amirarjang2@gmail.com"; 
   
-  // سیستم ورود امن گوگل
   signInWithEmailAndPassword(window.auth, adminEmail, pass)
-    .then((userCredential) => {
+    .then(() => {
       isAdmin = true;
       document.getElementById('adminToolbar').style.display = 'flex';
       document.getElementById('modeBadge').innerText = "حالت: مدیر ساختمان 👑";
@@ -57,7 +54,7 @@ window.confirmAdminLogin = function() {
       closeLoginModal();
       render();
     })
-    .catch((error) => {
+    .catch(() => {
       const wrapper = document.querySelector('.password-wrapper');
       wrapper.classList.add('invalid');
       setTimeout(() => wrapper.classList.remove('invalid'), 500);
@@ -67,7 +64,6 @@ window.confirmAdminLogin = function() {
 window.togglePasswordVisibility = function() {
   const input = document.getElementById('adminPasswordInput');
   const icon = document.getElementById('eyeIcon');
-  
   if (input.type === 'password') {
     input.type = 'text';
     icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
@@ -86,9 +82,11 @@ function initApp() {
       appData = data;
       if (!appData.paid) appData.paid = {};
       if (!appData.details) appData.details = {};
+      if (!appData.payments) appData.payments = {}; // بخش تاریخچه پرداخت‌ها
     } else {
       appData = JSON.parse(JSON.stringify(window.initialData)); 
       appData.paid = appData.paid || {};
+      appData.payments = appData.payments || {};
       saveData();
     }
     render();
@@ -117,7 +115,7 @@ function render() {
   const tfoot = document.getElementById('tableFoot');
   
   let thHtml = '<tr><th style="width:3%">#</th>';
-  thHtml += `<th style="width:12%">نام واحد ${isAdmin ? `<button class="th-btn add" onclick="openAddPersonModal()">+</button>` : ''}</th>`;
+  thHtml += `<th style="width:16%">نام واحد ${isAdmin ? `<button class="th-btn add" onclick="openAddPersonModal()">+</button>` : ''}</th>`;
   
   appData.columns.forEach(col => {
     thHtml += `<th>
@@ -127,7 +125,7 @@ function render() {
     </th>`;
   });
   
-  thHtml += `<th style="width:12%">مانده بدهی</th><th class="action-col" style="width:3%"></th></tr>`;
+  thHtml += `<th style="width:15%">مانده بدهی</th><th class="action-col" style="width:3%"></th></tr>`;
   thead.innerHTML = thHtml;
 
   tbody.innerHTML = '';
@@ -137,11 +135,19 @@ function render() {
 
   appData.people.forEach((person, index) => {
     let rowRemaining = 0;
+    
+    // محاسبه مجموع واریزی‌های دستی (پرداخت‌های جزئی)
+    let totalManualPayments = 0;
+    if (appData.payments && appData.payments[person.id]) {
+      totalManualPayments = appData.payments[person.id].reduce((sum, p) => sum + p.amount, 0);
+    }
+    
     let rowHtml = `<tr><td>${(index + 1).toLocaleString('fa-IR')}</td>`;
     
     rowHtml += `<td class="name">
       <span>${person.name}</span>
       <div style="display:flex; gap:2px;">
+        ${isAdmin ? `<button class="th-btn" onclick="openPaymentModal('${person.id}', '${person.name}')" title="ثبت پرداخت/واریزی">${MONEY_SVG}</button>` : ''}
         ${isAdmin ? `<button class="th-btn edit" onclick="openEditPersonModal('${person.id}')" title="ویرایش نام">✎</button>` : ''}
         ${isAdmin ? `<button class="th-btn del" onclick="askDeletePerson('${person.id}')" title="حذف">×</button>` : ''}
       </div>
@@ -161,7 +167,6 @@ function render() {
       
       if (amount === 0) {
         if (col.type === 'fixed') {
-          // ⬇️ استثنا برای علیرضا آرمند در ستون بدهی قبلی ⬇️
           if (person.id === 'p_armand' && col.id === 'col_old') {
             rowHtml += `<td><span style="color:#9ca3af; font-weight:bold;">-</span></td>`;
           } else {
@@ -177,12 +182,24 @@ function render() {
       }
     });
     
-    const totalHtml = rowRemaining === 0 ? `<span class="badge-settled">تسویه شد</span>` : `<span class="total-cell">${fmt(rowRemaining)}</span>`;
+    // ⬇️ کسر مبالغ واریزی دستی از بدهی کل
+    const finalRemaining = rowRemaining - totalManualPayments;
+    
+    let totalHtml;
+    if (finalRemaining > 0) {
+      totalHtml = `<span class="total-cell">${fmt(finalRemaining)}</span>`;
+    } else if (finalRemaining < 0) {
+      totalHtml = `<span class="total-cell" style="color:var(--success); font-size: 10pt;">بستانکار: ${fmt(Math.abs(finalRemaining))}</span>`;
+    } else {
+      totalHtml = `<span class="badge-settled">تسویه شد</span>`;
+    }
+    
     rowHtml += `<td>${totalHtml}</td><td class="action-col"></td></tr>`;
     
     tbody.innerHTML += rowHtml;
-    if (rowRemaining > 0) visibleCount++;
-    grandTotal += rowRemaining;
+    
+    if (finalRemaining > 0) visibleCount++;
+    grandTotal += finalRemaining;
   });
 
   let footHtml = `<tr><td colspan="2">جمع</td>`;
@@ -199,7 +216,85 @@ function render() {
   document.getElementById('sumPaidTotal').textContent = fmt(displayTotal);
 }
 
-// ═══════════ توابع ویرایش نام ═══════════
+// ═══════════ توابع ثبت پرداخت (واریزی) ═══════════
+window.openPaymentModal = function(id, name) {
+  if (!isAdmin) return;
+  document.getElementById('paymentPersonName').innerText = `شخص: ${name}`;
+  document.getElementById('paymentAmountInput').value = '';
+  
+  // تنظیم تاریخ امروز به صورت پیش‌فرض
+  const today = new Date().toLocaleDateString('fa-IR');
+  document.getElementById('paymentDateInput').value = today;
+
+  // رندر تاریخچه
+  renderPaymentHistory(id);
+  
+  document.getElementById('paymentModal').dataset.personId = id;
+  document.getElementById('paymentModal').classList.add('active');
+  setTimeout(() => document.getElementById('paymentAmountInput').focus(), 300);
+}
+
+function renderPaymentHistory(personId) {
+  const list = document.getElementById('paymentHistoryList');
+  list.innerHTML = '';
+  
+  if (!appData.payments || !appData.payments[personId] || appData.payments[personId].length === 0) {
+    list.innerHTML = '<li style="justify-content:center; color:#9ca3af; font-size:8.5pt;">هیچ واریزی ثبت نشده است.</li>';
+    return;
+  }
+
+  appData.payments[personId].forEach((p, index) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span style="font-size:9pt;">${p.date} - <b style="color:var(--success);">${fmt(p.amount)} تومان</b></span>
+      <button class="btn-reset-user" onclick="deletePayment('${personId}', ${index})" style="padding: 2px 8px; font-size: 8pt;">حذف</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+window.deletePayment = function(personId, index) {
+  if (!isAdmin) return;
+  if (!confirm('آیا از حذف این واریزی مطمئن هستید؟')) return;
+  
+  appData.payments[personId].splice(index, 1);
+  if (appData.payments[personId].length === 0) {
+    delete appData.payments[personId];
+  }
+  
+  saveData();
+  renderPaymentHistory(personId);
+  render(); // آپدیت جدول اصلی
+}
+
+window.closePaymentModal = function() {
+  document.getElementById('paymentModal').classList.remove('active');
+}
+
+window.confirmAddPayment = function() {
+  if (!isAdmin) return;
+  const personId = document.getElementById('paymentModal').dataset.personId;
+  const amount = parseInt(document.getElementById('paymentAmountInput').value);
+  const date = document.getElementById('paymentDateInput').value.trim();
+  
+  if (!amount || amount <= 0) { alert("لطفاً یک مبلغ معتبر وارد کنید."); return; }
+  if (!date) { alert("لطفاً تاریخ را وارد کنید."); return; }
+  
+  if (!appData.payments) appData.payments = {};
+  if (!appData.payments[personId]) appData.payments[personId] = [];
+  
+  // افزودن به آرایه
+  appData.payments[personId].push({ amount: amount, date: date });
+  
+  saveData();
+  
+  // رفرش تاریخچه و مبلغ
+  document.getElementById('paymentAmountInput').value = '';
+  renderPaymentHistory(personId);
+  render();
+}
+
+// ═══════════ بقیه توابع ═══════════
 window.openEditPersonModal = function(id) {
   if (!isAdmin) return;
   const person = appData.people.find(p => p.id === id);
@@ -212,22 +307,18 @@ window.openEditPersonModal = function(id) {
   }
 }
 
-window.closeEditPersonModal = function() {
-  document.getElementById('editPersonModal').classList.remove('active');
-}
+window.closeEditPersonModal = function() { document.getElementById('editPersonModal').classList.remove('active'); }
 
 window.confirmEditPerson = function() {
   if (!isAdmin) return;
   const id = document.getElementById('editPersonId').value;
   const newName = document.getElementById('editPersonName').value.trim();
-  
   if (!newName) {
     const input = document.getElementById('editPersonName');
     input.classList.add('invalid');
     setTimeout(() => input.classList.remove('invalid'), 500);
     return;
   }
-  
   const person = appData.people.find(p => p.id === id);
   if (person) {
     person.name = newName;
@@ -237,7 +328,6 @@ window.confirmEditPerson = function() {
   }
 }
 
-// ═══════════ بقیه توابع ═══════════
 window.togglePaid = function(id, colId) {
   if (!isAdmin) return;
   const key = `${id}:${colId}`;
@@ -328,6 +418,7 @@ window.confirmDeletePerson = function() {
   appData.people = appData.people.filter(p => p.id !== pendingDeletePersonId);
   Object.keys(appData.amounts).forEach(k => { if (k.startsWith(pendingDeletePersonId + ':')) delete appData.amounts[k]; });
   Object.keys(appData.paid).forEach(k => { if (k.startsWith(pendingDeletePersonId + ':')) delete appData.paid[k]; });
+  if (appData.payments) delete appData.payments[pendingDeletePersonId];
   saveData(); closeDeletePersonModal();
 }
 
@@ -371,6 +462,7 @@ window.restoreData = function(event) {
         appData = parsedData;
         if (!appData.paid) appData.paid = {};
         if (!appData.details) appData.details = {};
+        if (!appData.payments) appData.payments = {};
         saveData(); alert('✅ اطلاعات با موفقیت بازیابی شد!');
       } else { alert('❌ فایل معتبر نیست.'); }
     } catch (err) { alert('❌ خطا در خواندن فایل.'); }
