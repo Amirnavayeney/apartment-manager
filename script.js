@@ -54,10 +54,8 @@ window.confirmAdminLogin = function() {
       closeLoginModal();
       render();
     })
-        .catch((error) => {
-      console.error("خطای دقیق فایربیس:", error.code, error.message);
-      alert("خطای ورود: " + error.message); // این خط پیام خطا را روی صفحه نشان می‌دهد
-      
+    .catch((error) => {
+      alert("خطای ورود: " + error.message);
       const wrapper = document.querySelector('.password-wrapper');
       wrapper.classList.add('invalid');
       setTimeout(() => wrapper.classList.remove('invalid'), 500);
@@ -85,11 +83,11 @@ function initApp() {
       appData = data;
       if (!appData.paid) appData.paid = {};
       if (!appData.details) appData.details = {};
-      if (!appData.payments) appData.payments = {}; // بخش تاریخچه پرداخت‌ها
+      if (!appData.partialPayments) appData.partialPayments = {};
     } else {
       appData = JSON.parse(JSON.stringify(window.initialData)); 
       appData.paid = appData.paid || {};
-      appData.payments = appData.payments || {};
+      appData.partialPayments = appData.partialPayments || {};
       saveData();
     }
     render();
@@ -139,12 +137,6 @@ function render() {
   appData.people.forEach((person, index) => {
     let rowRemaining = 0;
     
-    // محاسبه مجموع واریزی‌های دستی (پرداخت‌های جزئی)
-    let totalManualPayments = 0;
-    if (appData.payments && appData.payments[person.id]) {
-      totalManualPayments = appData.payments[person.id].reduce((sum, p) => sum + p.amount, 0);
-    }
-    
     let rowHtml = `<tr><td>${(index + 1).toLocaleString('fa-IR')}</td>`;
     
     rowHtml += `<td class="name">
@@ -161,12 +153,15 @@ function render() {
       const amount = appData.amounts[key] || 0;
       const isPaid = appData.paid[key] || false;
       
-      const detailText = (appData.details && appData.details[key]) ? `<span class="sub">${appData.details[key]}</span>` : '';
-      
-      if (amount > 0) {
-        if (isPaid) sPaidTotal += amount;
-        else { rowRemaining += amount; colSums[col.id] += amount; }
+      // محاسبه پرداخت‌های جزئی برای این ستون خاص
+      let cellPartialSum = 0;
+      if (appData.partialPayments && appData.partialPayments[person.id] && appData.partialPayments[person.id][col.id]) {
+        cellPartialSum = appData.partialPayments[person.id][col.id].reduce((sum, p) => sum + p.amount, 0);
       }
+
+      const cellRemaining = amount - cellPartialSum;
+      const detailText = (appData.details && appData.details[key]) ? `<span class="sub">${appData.details[key]}</span>` : '';
+      const partialText = cellPartialSum > 0 ? `<span class="sub" style="color:var(--success);">(پرداخت شده: ${fmt(cellPartialSum)})</span>` : '';
       
       if (amount === 0) {
         if (col.type === 'fixed') {
@@ -178,21 +173,23 @@ function render() {
         } else {
           rowHtml += `<td><span style="color:#9ca3af;">—</span></td>`;
         }
-      } else if (isPaid) {
+      } else if (isPaid || cellRemaining <= 0) {
         rowHtml += `<td><div class="paid-anim">${CHECK_SVG} تسویه</div>${isAdmin ? `<button class="tog-btn undo" onclick="togglePaid('${person.id}','${col.id}')">↺</button>` : ''}</td>`;
+        if (cellRemaining > 0) {
+          sPaidTotal += amount;
+        } else {
+          sPaidTotal += amount;
+        }
       } else {
-        rowHtml += `<td><span class="amt">${fmt(amount)}</span>${detailText}${isAdmin ? `<button class="tog-btn" onclick="togglePaid('${person.id}','${col.id}')">${TRASH_SVG}</button>` : ''}</td>`;
+        rowRemaining += cellRemaining;
+        colSums[col.id] += cellRemaining;
+        rowHtml += `<td><span class="amt">${fmt(cellRemaining)}</span>${detailText}${partialText}${isAdmin ? `<button class="tog-btn" onclick="togglePaid('${person.id}','${col.id}')">${TRASH_SVG}</button>` : ''}</td>`;
       }
     });
     
-    // ⬇️ کسر مبالغ واریزی دستی از بدهی کل
-    const finalRemaining = rowRemaining - totalManualPayments;
-    
     let totalHtml;
-    if (finalRemaining > 0) {
-      totalHtml = `<span class="total-cell">${fmt(finalRemaining)}</span>`;
-    } else if (finalRemaining < 0) {
-      totalHtml = `<span class="total-cell" style="color:var(--success); font-size: 10pt;">بستانکار: ${fmt(Math.abs(finalRemaining))}</span>`;
+    if (rowRemaining > 0) {
+      totalHtml = `<span class="total-cell">${fmt(rowRemaining)}</span>`;
     } else {
       totalHtml = `<span class="badge-settled">تسویه شد</span>`;
     }
@@ -201,8 +198,8 @@ function render() {
     
     tbody.innerHTML += rowHtml;
     
-    if (finalRemaining > 0) visibleCount++;
-    grandTotal += finalRemaining;
+    if (rowRemaining > 0) visibleCount++;
+    grandTotal += rowRemaining;
   });
 
   let footHtml = `<tr><td colspan="2">جمع</td>`;
@@ -225,11 +222,39 @@ window.openPaymentModal = function(id, name) {
   document.getElementById('paymentPersonName').innerText = `شخص: ${name}`;
   document.getElementById('paymentAmountInput').value = '';
   
-  // تنظیم تاریخ امروز به صورت پیش‌فرض
   const today = new Date().toLocaleDateString('fa-IR');
   document.getElementById('paymentDateInput').value = today;
 
-  // رندر تاریخچه
+  // پر کردن منوی کشویی با ستون‌هایی که بدهی دارند
+  const select = document.getElementById('paymentColumnSelect');
+  select.innerHTML = '';
+  
+  appData.columns.forEach(col => {
+    const key = `${id}:${col.id}`;
+    const amount = appData.amounts[key] || 0;
+    const isPaid = appData.paid[key] || false;
+    
+    let cellPartialSum = 0;
+    if (appData.partialPayments && appData.partialPayments[id] && appData.partialPayments[id][col.id]) {
+      cellPartialSum = appData.partialPayments[id][col.id].reduce((sum, p) => sum + p.amount, 0);
+    }
+    
+    const remaining = amount - cellPartialSum;
+    
+    if (remaining > 0 && !isPaid) {
+      const option = document.createElement('option');
+      option.value = col.id;
+      option.textContent = `${col.label} (باقیمانده: ${fmt(remaining)})`;
+      select.appendChild(option);
+    }
+  });
+
+  if (select.innerHTML === '') {
+    const option = document.createElement('option');
+    option.textContent = 'هیچ بدهی باقی نمانده است';
+    select.appendChild(option);
+  }
+
   renderPaymentHistory(id);
   
   document.getElementById('paymentModal').dataset.personId = id;
@@ -241,33 +266,44 @@ function renderPaymentHistory(personId) {
   const list = document.getElementById('paymentHistoryList');
   list.innerHTML = '';
   
-  if (!appData.payments || !appData.payments[personId] || appData.payments[personId].length === 0) {
-    list.innerHTML = '<li style="justify-content:center; color:#9ca3af; font-size:8.5pt;">هیچ واریزی ثبت نشده است.</li>';
-    return;
+  let hasHistory = false;
+  if (appData.partialPayments && appData.partialPayments[personId]) {
+    for (const colId in appData.partialPayments[personId]) {
+      appData.partialPayments[personId][colId].forEach((p, index) => {
+        hasHistory = true;
+        const col = appData.columns.find(c => c.id === colId);
+        const colName = col ? col.label : 'نامشخص';
+        
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span style="font-size:9pt;">${p.date} - <b style="color:var(--success);">${fmt(p.amount)} تومان</b> (بابت: ${colName})</span>
+          <button class="btn-reset-user" onclick="deletePayment('${personId}', '${colId}', ${index})" style="padding: 2px 8px; font-size: 8pt;">حذف</button>
+        `;
+        list.appendChild(li);
+      });
+    }
   }
 
-  appData.payments[personId].forEach((p, index) => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <span style="font-size:9pt;">${p.date} - <b style="color:var(--success);">${fmt(p.amount)} تومان</b></span>
-      <button class="btn-reset-user" onclick="deletePayment('${personId}', ${index})" style="padding: 2px 8px; font-size: 8pt;">حذف</button>
-    `;
-    list.appendChild(li);
-  });
+  if (!hasHistory) {
+    list.innerHTML = '<li style="justify-content:center; color:#9ca3af; font-size:8.5pt;">هیچ واریزی ثبت نشده است.</li>';
+  }
 }
 
-window.deletePayment = function(personId, index) {
+window.deletePayment = function(personId, colId, index) {
   if (!isAdmin) return;
   if (!confirm('آیا از حذف این واریزی مطمئن هستید؟')) return;
   
-  appData.payments[personId].splice(index, 1);
-  if (appData.payments[personId].length === 0) {
-    delete appData.payments[personId];
+  appData.partialPayments[personId][colId].splice(index, 1);
+  if (appData.partialPayments[personId][colId].length === 0) {
+    delete appData.partialPayments[personId][colId];
+  }
+  if (Object.keys(appData.partialPayments[personId]).length === 0) {
+    delete appData.partialPayments[personId];
   }
   
   saveData();
   renderPaymentHistory(personId);
-  render(); // آپدیت جدول اصلی
+  render();
 }
 
 window.closePaymentModal = function() {
@@ -277,21 +313,22 @@ window.closePaymentModal = function() {
 window.confirmAddPayment = function() {
   if (!isAdmin) return;
   const personId = document.getElementById('paymentModal').dataset.personId;
+  const colId = document.getElementById('paymentColumnSelect').value;
   const amount = parseInt(document.getElementById('paymentAmountInput').value);
   const date = document.getElementById('paymentDateInput').value.trim();
   
+  if (!colId) { alert("لطفاً یک بدهی را انتخاب کنید."); return; }
   if (!amount || amount <= 0) { alert("لطفاً یک مبلغ معتبر وارد کنید."); return; }
   if (!date) { alert("لطفاً تاریخ را وارد کنید."); return; }
   
-  if (!appData.payments) appData.payments = {};
-  if (!appData.payments[personId]) appData.payments[personId] = [];
+  if (!appData.partialPayments) appData.partialPayments = {};
+  if (!appData.partialPayments[personId]) appData.partialPayments[personId] = {};
+  if (!appData.partialPayments[personId][colId]) appData.partialPayments[personId][colId] = [];
   
-  // افزودن به آرایه
-  appData.payments[personId].push({ amount: amount, date: date });
+  appData.partialPayments[personId][colId].push({ amount: amount, date: date });
   
   saveData();
   
-  // رفرش تاریخچه و مبلغ
   document.getElementById('paymentAmountInput').value = '';
   renderPaymentHistory(personId);
   render();
@@ -334,8 +371,16 @@ window.confirmEditPerson = function() {
 window.togglePaid = function(id, colId) {
   if (!isAdmin) return;
   const key = `${id}:${colId}`;
-  if (appData.paid[key]) delete appData.paid[key];
-  else appData.paid[key] = true;
+  
+  if (appData.paid[key]) {
+    delete appData.paid[key];
+  } else {
+    appData.paid[key] = true;
+    // اگر کامل تسویه شد، پرداخت‌های جزئی این ستون را پاک کن (چون کل مبلغ تسویه شده)
+    if (appData.partialPayments && appData.partialPayments[id] && appData.partialPayments[id][colId]) {
+      delete appData.partialPayments[id][colId];
+    }
+  }
   saveData();
 }
 
@@ -421,7 +466,7 @@ window.confirmDeletePerson = function() {
   appData.people = appData.people.filter(p => p.id !== pendingDeletePersonId);
   Object.keys(appData.amounts).forEach(k => { if (k.startsWith(pendingDeletePersonId + ':')) delete appData.amounts[k]; });
   Object.keys(appData.paid).forEach(k => { if (k.startsWith(pendingDeletePersonId + ':')) delete appData.paid[k]; });
-  if (appData.payments) delete appData.payments[pendingDeletePersonId];
+  if (appData.partialPayments) delete appData.partialPayments[pendingDeletePersonId];
   saveData(); closeDeletePersonModal();
 }
 
@@ -439,6 +484,15 @@ window.confirmDeleteColumn = function() {
   appData.columns = appData.columns.filter(c => c.id !== pendingDeleteColumnId);
   Object.keys(appData.amounts).forEach(k => { if (k.endsWith(':' + pendingDeleteColumnId)) delete appData.amounts[k]; });
   Object.keys(appData.paid).forEach(k => { if (k.endsWith(':' + pendingDeleteColumnId)) delete appData.paid[k]; });
+  
+  if (appData.partialPayments) {
+    appData.people.forEach(p => {
+      if (appData.partialPayments[p.id] && appData.partialPayments[p.id][pendingDeleteColumnId]) {
+        delete appData.partialPayments[p.id][pendingDeleteColumnId];
+      }
+    });
+  }
+  
   saveData(); closeDeleteColumnModal();
 }
 
@@ -465,7 +519,7 @@ window.restoreData = function(event) {
         appData = parsedData;
         if (!appData.paid) appData.paid = {};
         if (!appData.details) appData.details = {};
-        if (!appData.payments) appData.payments = {};
+        if (!appData.partialPayments) appData.partialPayments = {};
         saveData(); alert('✅ اطلاعات با موفقیت بازیابی شد!');
       } else { alert('❌ فایل معتبر نیست.'); }
     } catch (err) { alert('❌ خطا در خواندن فایل.'); }
