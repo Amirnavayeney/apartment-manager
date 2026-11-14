@@ -24,7 +24,7 @@
     </div>
 
     <div class="guide-box">
-      <div><b>💡 راهنما:</b> برای ثبت پرداخت جزئی، روی دکمه 💵 کنار نام هر شخص کلیک کنید. سیستم به صورت خودکار مبلغ واریزی را از بدهی کل او کسر می‌کند.</div>
+      <div><b>💡 راهنما:</b> برای ثبت پرداخت جزئی، روی دکمه 💵 کنار نام هر شخص کلیک کنید و مشخص کنید مبلغ واریزی از کدام بدهی کسر شود.</div>
     </div>
 
     <div class="scroll-hint">
@@ -81,22 +81,34 @@
     </div>
   </div>
 
+  <!-- پاپ‌آپ ثبت پرداخت جزئی (با منوی انتخاب بخش) -->
   <div id="paymentModal" class="modal-overlay">
     <div class="modal-content success-modal" style="border-top-color: #3b82f6;">
       <div class="modal-header"><h3>💵 ثبت واریزی جدید</h3><button class="close-btn" onclick="closePaymentModal()">&times;</button></div>
       <div class="modal-body">
         <p class="modal-desc" style="text-align: center; font-size: 10pt; margin-bottom: 15px;" id="paymentPersonName">نام شخص</p>
+        
+        <div class="form-group">
+          <label>بابت کدام بدهی است؟</label>
+          <select id="paymentColumnSelect" class="form-control" style="padding: 8px; font-family: inherit;">
+            <!-- به صورت خودکار پر می‌شود -->
+          </select>
+        </div>
+
         <div class="form-group">
           <label>مبلغ واریزی (تومان):</label>
           <input type="number" id="paymentAmountInput" class="form-control" placeholder="مثلاً: 500000" step="10000">
         </div>
+        
         <div class="form-group">
           <label>تاریخ واریز:</label>
           <input type="text" id="paymentDateInput" class="form-control" placeholder="مثلاً: ۱۴ آبان ۱۴۰۵">
         </div>
+
         <hr style="border: 0; border-top: 1px dashed #ddd; margin: 15px 0;">
+        
         <label style="font-size: 9pt; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 5px;">تاریخچه واریزی‌های قبلی:</label>
-        <ul id="paymentHistoryList" class="reset-list" style="max-height: 150px; font-size: 9pt;"></ul>
+        <ul id="paymentHistoryList" class="reset-list" style="max-height: 120px; font-size: 9pt;"></ul>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closePaymentModal()">بستن</button>
@@ -175,7 +187,6 @@
     import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     
-    // ⬇️ کانفیگ دقیق و صحیح پروژه شما ⬇️
     const firebaseConfig = {
       apiKey: "AIzaSyDgKLRy5vrjkBIFwH34RjoDkA18MiY3IMA",
       authDomain: "apartment-manager-3b066.firebaseapp.com",
@@ -183,8 +194,7 @@
       projectId: "apartment-manager-3b066",
       storageBucket: "apartment-manager-3b066.firebasestorage.app",
       messagingSenderId: "1038630638765",
-      appId: "1:1038630638765:web:5bedd7a6cc10a0dc39a224",
-      measurementId: "G-2CFTK6LWVX"
+      appId: "1:1038630638765:web:5bedd7a6cc10a0dc39a224"
     };
     
     const app = initializeApp(firebaseConfig);
