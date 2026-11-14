@@ -54,7 +54,10 @@ window.confirmAdminLogin = function() {
       closeLoginModal();
       render();
     })
-    .catch(() => {
+        .catch((error) => {
+      console.error("خطای دقیق فایربیس:", error.code, error.message);
+      alert("خطای ورود: " + error.message); // این خط پیام خطا را روی صفحه نشان می‌دهد
+      
       const wrapper = document.querySelector('.password-wrapper');
       wrapper.classList.add('invalid');
       setTimeout(() => wrapper.classList.remove('invalid'), 500);
