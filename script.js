@@ -40,7 +40,7 @@ window.closeLoginModal = function() { document.getElementById('loginModal').clas
 
 window.confirmAdminLogin = function() {
   const pass = document.getElementById('adminPasswordInput').value;
-  const adminEmail = "amirarjang2@gmail.com"; 
+  const adminEmail = "amirarjang2@gmail.com"; // ایمیل مدیر
   
   signInWithEmailAndPassword(window.auth, adminEmail, pass)
     .then(() => {
@@ -153,7 +153,6 @@ function render() {
       const amount = appData.amounts[key] || 0;
       const isPaid = appData.paid[key] || false;
       
-      // محاسبه پرداخت‌های جزئی برای این ستون خاص
       let cellPartialSum = 0;
       if (appData.partialPayments && appData.partialPayments[person.id] && appData.partialPayments[person.id][col.id]) {
         cellPartialSum = appData.partialPayments[person.id][col.id].reduce((sum, p) => sum + p.amount, 0);
@@ -175,14 +174,11 @@ function render() {
         }
       } else if (isPaid || cellRemaining <= 0) {
         rowHtml += `<td><div class="paid-anim">${CHECK_SVG} تسویه</div>${isAdmin ? `<button class="tog-btn undo" onclick="togglePaid('${person.id}','${col.id}')">↺</button>` : ''}</td>`;
-        if (cellRemaining > 0) {
-          sPaidTotal += amount;
-        } else {
-          sPaidTotal += amount;
-        }
+        sPaidTotal += amount; // جمع مبلغ کل تسویه شده
       } else {
         rowRemaining += cellRemaining;
         colSums[col.id] += cellRemaining;
+        sPaidTotal += cellPartialSum; // ⬅️ اضافه شدن مبالغ پرداخت جزئی به جمع کل پرداختی
         rowHtml += `<td><span class="amt">${fmt(cellRemaining)}</span>${detailText}${partialText}${isAdmin ? `<button class="tog-btn" onclick="togglePaid('${person.id}','${col.id}')">${TRASH_SVG}</button>` : ''}</td>`;
       }
     });
@@ -225,7 +221,6 @@ window.openPaymentModal = function(id, name) {
   const today = new Date().toLocaleDateString('fa-IR');
   document.getElementById('paymentDateInput').value = today;
 
-  // پر کردن منوی کشویی با ستون‌هایی که بدهی دارند
   const select = document.getElementById('paymentColumnSelect');
   select.innerHTML = '';
   
@@ -376,7 +371,6 @@ window.togglePaid = function(id, colId) {
     delete appData.paid[key];
   } else {
     appData.paid[key] = true;
-    // اگر کامل تسویه شد، پرداخت‌های جزئی این ستون را پاک کن (چون کل مبلغ تسویه شده)
     if (appData.partialPayments && appData.partialPayments[id] && appData.partialPayments[id][colId]) {
       delete appData.partialPayments[id][colId];
     }
