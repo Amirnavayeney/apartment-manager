@@ -81,25 +81,20 @@
     </div>
   </div>
 
-  <!-- پاپ‌آپ ثبت پرداخت جدید -->
   <div id="paymentModal" class="modal-overlay">
     <div class="modal-content success-modal" style="border-top-color: #3b82f6;">
       <div class="modal-header"><h3>💵 ثبت واریزی جدید</h3><button class="close-btn" onclick="closePaymentModal()">&times;</button></div>
       <div class="modal-body">
         <p class="modal-desc" style="text-align: center; font-size: 10pt; margin-bottom: 15px;" id="paymentPersonName">نام شخص</p>
-        
         <div class="form-group">
           <label>مبلغ واریزی (تومان):</label>
           <input type="number" id="paymentAmountInput" class="form-control" placeholder="مثلاً: 500000" step="10000">
         </div>
-        
         <div class="form-group">
           <label>تاریخ واریز:</label>
           <input type="text" id="paymentDateInput" class="form-control" placeholder="مثلاً: ۱۴ آبان ۱۴۰۵">
         </div>
-
         <hr style="border: 0; border-top: 1px dashed #ddd; margin: 15px 0;">
-        
         <label style="font-size: 9pt; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 5px;">تاریخچه واریزی‌های قبلی:</label>
         <ul id="paymentHistoryList" class="reset-list" style="max-height: 150px; font-size: 9pt;"></ul>
       </div>
@@ -180,14 +175,16 @@
     import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     
+    // ⬇️ کانفیگ دقیق و صحیح پروژه شما ⬇️
     const firebaseConfig = {
-      apiKey: "AIzaSyDgKLRy5vrykBIFWH34RjoDKA18MiY3IMA",
+      apiKey: "AIzaSyDgKLRy5vrjkBIFwH34RjoDkA18MiY3IMA",
       authDomain: "apartment-manager-3b066.firebaseapp.com",
       databaseURL: "https://apartment-manager-3b066-default-rtdb.firebaseio.com",
       projectId: "apartment-manager-3b066",
       storageBucket: "apartment-manager-3b066.firebasestorage.app",
       messagingSenderId: "1038630638765",
-      appId: "1:1038630638765:web:81ae149ca38272d039a224"
+      appId: "1:1038630638765:web:5bedd7a6cc10a0dc39a224",
+      measurementId: "G-2CFTK6LWVX"
     };
     
     const app = initializeApp(firebaseConfig);
